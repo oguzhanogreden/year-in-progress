@@ -13,12 +13,8 @@
   display: block;
 }
 
-.canvas__indicator--end {
-  left: -100%;
-}
-
 .canvas__indicator--start  {
-  right: 0%;
+  transform: translateX(-100%);
   text-align: right;
 }
 
@@ -28,6 +24,6 @@
 
 .canvas__indicator--start .arrow {
   position: relative;
-  right: -78%
+  right: -72%
 }
 
