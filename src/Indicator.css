@@ -1,0 +1,7 @@
+.Indicator {
+    border-left: 1px solid black;
+    position: absolute;
+    height: 100%;
+    width: 1px;
+    left: -.1em;
+}

@@ -1,22 +1,23 @@
 import React from 'react';
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import './App.css';
+import './Indicator.css';
 import './Canvas.css';
 import './Goal.css';
 import './Header.css';
 import { DateTime } from 'luxon';
 import { FiArrowLeft, FiArrowRight } from 'react-icons/fi'
 
-import {IClient, Client, Callback, GoalResponse } from './beeminder/client-wrapper'
-import { filter, map, mergeAll, scan, switchMap, tap } from 'rxjs/operators';
+import {filter, map, mergeAll, scan, switchMap, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { GoalResponse } from 'reactive-beeminder-client/dist/api';
+import { Client, IClient } from 'reactive-beeminder-client/dist/client';
 
 const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
   getGoal: (goalName, cb) => {
     const url = `https://www.beeminder.com/api/v1/users/oguzhanogreden/goals/${goalName}.json?auth_token=${token}&datapoints=true`
-    const goal = fetch(url).then(response => {
+    fetch(url).then(response => {
       if (response.ok) {
-        
         return response.json() 
       }
     }).then((goal: GoalResponse) => cb(null, goal))
@@ -71,13 +72,16 @@ class Canvas extends React.Component<any, CanvasState> {
   render() {
     const {year, progress} = this.state ;
     
-
     return  <div className={this.props.className}>
 
       <div className="Header">
-        {/* Make a Now component */}
-        <p>This here is now.</p>
-        <p>Progress: {progress}%</p>
+        <div className="Indicator">
+            
+        </div>
+        <div>
+            <p>This here is now.</p>
+            <p>Progress: {progress}%</p>
+        </div>
       </div>
 
       <div className="canvas__goal-container">
