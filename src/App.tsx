@@ -71,28 +71,11 @@ class Canvas extends React.Component<any, CanvasState> {
   render() {
     const {year, progress} = this.state ;
     
-    const divStyle = {
-      marginLeft: '100%',
-      position: 'relative',
-      left: `${-(progress)}%`,
-      width: '100%',
-    } as React.CSSProperties
-    
-    const endArrowStyle: React.CSSProperties = {
-      left: `${(progress - 100)}%`
-    }
-    const startArrowStyle: React.CSSProperties = {
-      left: `${(progress)}%`
-    }
-    
-    return  <div className={this.props.className} style={divStyle}>
-      <div className="canvas__indicator canvas__indicator--start" style={endArrowStyle}>
-        <span className='text'>This side is</span>
-        <span>2021</span>
-        <FiArrowLeft></FiArrowLeft>
-      </div>
+
+    return  <div className={this.props.className}>
 
       <div className="Header">
+        {/* Make a Now component */}
         <p>This here is now.</p>
         <p>Progress: {progress}%</p>
       </div>
@@ -101,7 +84,7 @@ class Canvas extends React.Component<any, CanvasState> {
         <Goal className="Goal" name='Running (Duration)'></Goal>
       </div>
 
-      <div className="canvas__indicator canvas__indicator--end" style={startArrowStyle}>
+      <div className="canvas__indicator canvas__indicator--end" >
         <span className="text">This side is</span>
         <span>2023</span>
         <FiArrowRight className="arrow"></FiArrowRight>
@@ -156,7 +139,7 @@ class Goal extends React.Component<GoalProps, GoalState> {
     
 
     const style: React.CSSProperties = {
-      left: `${-(relativeProgress)}%`,
+      left: `${(relativeProgress)}%`,
     }
     return <div className={this.props.className} style={style}>
       {/* CONV */}
