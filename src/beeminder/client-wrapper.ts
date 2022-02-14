@@ -6,6 +6,7 @@ import {
   tap
 } from "rxjs";
 
+// Use with node: uncomment this 
 // var _beeminder = require("beeminder");
 
 export type Goal = {

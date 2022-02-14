@@ -13,7 +13,7 @@
   display: block;
 }
 
-.canvas__indicator--start  {
+.canvas__indicator--end  {
   transform: translateX(-100%);
   text-align: right;
 }
@@ -22,7 +22,7 @@
   font-size: .75em;
 }
 
-.canvas__indicator--start .arrow {
+.canvas__indicator--end .arrow {
   position: relative;
   right: -72%
 }

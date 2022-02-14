@@ -86,19 +86,24 @@ class Canvas extends React.Component<any, CanvasState> {
     }
     
     return  <div className={this.props.className} style={divStyle}>
-      <div className="canvas__indicator canvas__indicator--end" style={endArrowStyle}>
+      <div className="canvas__indicator canvas__indicator--start" style={endArrowStyle}>
         <span className='text'>This side is</span>
-        <span>2023</span>
+        <span>2021</span>
         <FiArrowLeft></FiArrowLeft>
       </div>
 
-      <header className="Header"> {progress}% </header>
+      <div className="Header">
+        <p>This here is now.</p>
+        <p>Progress: {progress}%</p>
+      </div>
 
-      <Goal className="Goal" name='Running (Duration)'></Goal>
+      <div className="canvas__goal-container">
+        <Goal className="Goal" name='Running (Duration)'></Goal>
+      </div>
 
-      <div className="canvas__indicator canvas__indicator--start" style={startArrowStyle}>
+      <div className="canvas__indicator canvas__indicator--end" style={startArrowStyle}>
         <span className="text">This side is</span>
-        <span>2021</span>
+        <span>2023</span>
         <FiArrowRight className="arrow"></FiArrowRight>
       </div>
     </div>
