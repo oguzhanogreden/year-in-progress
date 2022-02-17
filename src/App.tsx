@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import './Indicator.css';
+import './Canvas.css'
 import './Goal.css';
 import './Header.css';
 import { DateTime } from 'luxon';
