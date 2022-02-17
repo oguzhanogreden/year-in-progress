@@ -1,7 +1,9 @@
 .Canvas {
   border: 1px solid black;
   height: 100%;
-  padding: 2em 0;
+  padding: 0 1em;
+    position: 'relative';
+    width: '100%',
 }
 
 .canvas__indicator {
@@ -13,16 +15,16 @@
   display: block;
 }
 
-.canvas__indicator--start  {
-  transform: translateX(-100%);
+.canvas__indicator--end  {
   text-align: right;
+    right: 0%
 }
 
 .canvas__indicator .text  {
   font-size: .75em;
 }
 
-.canvas__indicator--start .arrow {
+.canvas__indicator--end .arrow {
   position: relative;
   right: -72%
 }

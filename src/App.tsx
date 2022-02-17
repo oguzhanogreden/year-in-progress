@@ -1,22 +1,26 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react';
+// import logo from './logo.svg';
 import './App.css';
+import './Indicator.css';
 import './Canvas.css';
 import './Goal.css';
 import './Header.css';
 import { DateTime } from 'luxon';
 import { FiArrowLeft, FiArrowRight } from 'react-icons/fi'
-
-import {IClient, Client, Callback, GoalResponse } from './beeminder/client-wrapper'
-import { filter, map, mergeAll, scan, switchMap, tap } from 'rxjs/operators';
+import { BrowserRouter, Link, Route, Routes,} from 'react-router-dom';
+import {filter, map, mergeAll, scan, switchMap, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { GoalResponse } from 'reactive-beeminder-client/dist/api';
+import { Client, IClient } from 'reactive-beeminder-client/dist/client';
+import Settings from './Settings';
+import { getApiKey } from './local-storage';
+
 
 const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
   getGoal: (goalName, cb) => {
     const url = `https://www.beeminder.com/api/v1/users/oguzhanogreden/goals/${goalName}.json?auth_token=${token}&datapoints=true`
-    const goal = fetch(url).then(response => {
+    fetch(url).then(response => {
       if (response.ok) {
-        
         return response.json() 
       }
     }).then((goal: GoalResponse) => cb(null, goal))
@@ -24,8 +28,7 @@ const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
   },
   getUser: (cb) => { throw "not yet implemented"}
 })
-const client = new Client('', beeminderFetchClient);
-
+let client = new Client({token: getApiKey(), client: beeminderFetchClient});
 
 type Target = {
   name: string,
@@ -71,34 +74,25 @@ class Canvas extends React.Component<any, CanvasState> {
   render() {
     const {year, progress} = this.state ;
     
-    const divStyle = {
-      marginLeft: '100%',
-      position: 'relative',
-      left: `${-(progress)}%`,
-      width: '100%',
-    } as React.CSSProperties
-    
-    const endArrowStyle: React.CSSProperties = {
-      left: `${(progress - 100)}%`
-    }
-    const startArrowStyle: React.CSSProperties = {
-      left: `${(progress)}%`
-    }
-    
-    return  <div className={this.props.className} style={divStyle}>
-      <div className="canvas__indicator canvas__indicator--end" style={endArrowStyle}>
-        <span className='text'>This side is</span>
-        <span>2023</span>
-        <FiArrowLeft></FiArrowLeft>
+    return  <div className={this.props.className}>
+
+      <div className="Header">
+        <div className="Indicator">
+            
+        </div>
+        <div>
+            <p>This here is now.</p>
+            <p>Progress: {progress}%</p>
+        </div>
       </div>
 
-      <header className="Header"> {progress}% </header>
+      <div className="canvas__goal-container">
+        <Goal className="Goal" name='Running (Duration)'></Goal>
+      </div>
 
-      <Goal className="Goal" name='Running (Duration)'></Goal>
-
-      <div className="canvas__indicator canvas__indicator--start" style={startArrowStyle}>
+      <div className="canvas__indicator canvas__indicator--end" >
         <span className="text">This side is</span>
-        <span>2021</span>
+        <span>2023</span>
         <FiArrowRight className="arrow"></FiArrowRight>
       </div>
     </div>
@@ -151,7 +145,7 @@ class Goal extends React.Component<GoalProps, GoalState> {
     
 
     const style: React.CSSProperties = {
-      left: `${-(relativeProgress)}%`,
+      left: `${(relativeProgress)}%`,
     }
     return <div className={this.props.className} style={style}>
       {/* CONV */}
@@ -162,12 +156,31 @@ class Goal extends React.Component<GoalProps, GoalState> {
 }
 
 function App() {
-  return (
-    <div className="App">
-        <Canvas className="Canvas"></Canvas>
-    </div>
-  );
+    const [key, setKey] = useState(getApiKey())
+    
+    const handleBeeminderKeyChanged = (key: string) => {
+        client = new Client({
+            'client': beeminderFetchClient,
+            'token': key
+        })
+        setKey(key) 
+    }
+    
+    return (
+        <div className="App">
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={
+                        (<div>
+                            <Canvas className="Canvas"></Canvas>
+                            <Link to="/settings">Settings</Link>
+                        </div>) 
+                    } />
+                    <Route path="/settings" element={<Settings onBeeminderApiKeyChanged={handleBeeminderKeyChanged} />} />
+                </Routes>
+            </BrowserRouter>
+        </div>
+    );
 }
 
 export default App;
-

@@ -1,7 +1,8 @@
 .Goal {
 	position: relative;
+    border-left: 1px solid blue;
 }
 
 .goal--title {
-	/* color: red; */
+	color: red;
 }
