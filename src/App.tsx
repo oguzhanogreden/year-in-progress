@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 // import logo from './logo.svg';
 import './App.css';
 import './Indicator.css';
@@ -7,11 +7,14 @@ import './Goal.css';
 import './Header.css';
 import { DateTime } from 'luxon';
 import { FiArrowLeft, FiArrowRight } from 'react-icons/fi'
-
+import { BrowserRouter, Link, Route, Routes,} from 'react-router-dom';
 import {filter, map, mergeAll, scan, switchMap, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { GoalResponse } from 'reactive-beeminder-client/dist/api';
 import { Client, IClient } from 'reactive-beeminder-client/dist/client';
+import Settings from './Settings';
+import { getApiKey } from './local-storage';
+
 
 const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
   getGoal: (goalName, cb) => {
@@ -25,8 +28,7 @@ const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
   },
   getUser: (cb) => { throw "not yet implemented"}
 })
-const client = new Client('', beeminderFetchClient);
-
+let client = new Client({token: getApiKey(), client: beeminderFetchClient});
 
 type Target = {
   name: string,
@@ -154,12 +156,31 @@ class Goal extends React.Component<GoalProps, GoalState> {
 }
 
 function App() {
-  return (
-    <div className="App">
-        <Canvas className="Canvas"></Canvas>
-    </div>
-  );
+    const [key, setKey] = useState(getApiKey())
+    
+    const handleBeeminderKeyChanged = (key: string) => {
+        client = new Client({
+            'client': beeminderFetchClient,
+            'token': key
+        })
+        setKey(key) 
+    }
+    
+    return (
+        <div className="App">
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={
+                        (<div>
+                            <Canvas className="Canvas"></Canvas>
+                            <Link to="/settings">Settings</Link>
+                        </div>) 
+                    } />
+                    <Route path="/settings" element={<Settings onBeeminderApiKeyChanged={handleBeeminderKeyChanged} />} />
+                </Routes>
+            </BrowserRouter>
+        </div>
+    );
 }
 
 export default App;
-
