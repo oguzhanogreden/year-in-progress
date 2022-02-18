@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
+import './GoalList.css';
 import './Indicator.css';
 import './Canvas.css'
 import './Goal.css';
@@ -56,12 +57,15 @@ const progress = () => {
   return +((progress * 100).toFixed(2) );
 }
 
+type CanvasProps = React.HTMLAttributes<HTMLDivElement> & {
+    goalSlugs: string[]
+}
 type CanvasState = {
   progress: number;
   year: number,
 };
 
-class Canvas extends React.Component<any, CanvasState> {
+class Canvas extends React.Component<CanvasProps, CanvasState> {
   constructor(props: any) {
     super(props)
     this.state = {
@@ -86,7 +90,7 @@ class Canvas extends React.Component<any, CanvasState> {
       </div>
 
       <div className="canvas__goal-container">
-        <Goal className="Goal" name='Running (Duration)'></Goal>
+        <Goal className="Goal" name='Running (Duration)' slug='running-duration'></Goal>
       </div>
 
       <div className="canvas__indicator canvas__indicator--end" >
@@ -100,6 +104,7 @@ class Canvas extends React.Component<any, CanvasState> {
 
 type GoalProps = React.HTMLAttributes<HTMLDivElement> & {
   name: string,
+  slug: string
 }
 type GoalState = {
   relativeProgress: number,
@@ -112,7 +117,7 @@ class Goal extends React.Component<GoalProps, GoalState> {
   }
 
   loadTarget = () => {
-    const slug = "running-duration"
+    const { slug } = this.props;
     client.getGoalData(slug)
     
     const relativeProgress = client.goalDataStream$.pipe(
@@ -156,6 +161,8 @@ class Goal extends React.Component<GoalProps, GoalState> {
 
 function App() {
     const [key, setKey] = useState(getApiKey())
+    const [isAddingGoal, setIsAddingGoal] = useState(true)
+    const [goalNames, setGoalNames] = useState([] as string[])
     
     const handleBeeminderKeyChanged = (key: string) => {
         client = new Client({
@@ -165,14 +172,37 @@ function App() {
         setKey(key) 
     }
     
+    const getGoalNames = (key: string) => {
+        // Client should expose user$ with .goals = Goal[]
+        client.goalDataStream$.pipe(
+            map(g => g.slug),
+            map(slug => goalNames.includes(slug) ? goalNames : [...goalNames, slug])
+        ).subscribe(goalNames => setGoalNames(goalNames))
+    }
+    
+    useEffect(() => {
+        getGoalNames(key);
+    })
+    
     return (
         <div className="App">
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={
                         (<div>
-                            <Canvas className="Canvas"></Canvas>
-                            <Link to="/settings">Settings</Link>
+                            <Canvas goalSlugs={goalNames} className="Canvas"></Canvas>
+                            {/* <Link to="/settings">Settings</Link> */}
+                            { !isAddingGoal &&
+                                <div className="AddGoal">
+                                    <button onClick={() => setIsAddingGoal(true)}>Add goal</button>
+                                </div>
+                            }
+                            {
+                                isAddingGoal &&
+                                    <div className="GoalList">
+                                       {goalNames}
+                                    </div>
+                            }
                         </div>) 
                     } />
                     <Route path="/settings" element={<Settings onBeeminderApiKeyChanged={handleBeeminderKeyChanged} />} />
