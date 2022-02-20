@@ -6,11 +6,11 @@ import './Canvas.css'
 import './Goal.css';
 import './Header.css';
 import { DateTime } from 'luxon';
-import { FiArrowLeft, FiArrowRight } from 'react-icons/fi'
-import { BrowserRouter, Link, Route, Routes,} from 'react-router-dom';
+import { FiCheck, FiArrowRight } from 'react-icons/fi'
+import { BrowserRouter, Route, Routes,} from 'react-router-dom';
 import {filter, map, mergeAll, scan, switchMap, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { GoalResponse } from 'reactive-beeminder-client/dist/api';
+import { GoalResponse, UserResponse } from 'reactive-beeminder-client/dist/api';
 import { Client, IClient } from 'reactive-beeminder-client/dist/client';
 import Settings from './Settings';
 import { getApiKey } from './local-storage';
@@ -26,7 +26,15 @@ const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
     }).then((goal: GoalResponse) => cb(null, goal))
     .catch(err => console.log(err));
   },
-  getUser: (cb) => { throw "not yet implemented"}
+  getUser: (cb) => {
+    const url = `https://www.beeminder.com/api/v1/users/oguzhanogreden.json?auth_token=${token}`;
+    fetch(url).then(response => {
+      if (response.ok) {
+        return response.json()
+      }
+    }).then(((user: UserResponse) => cb(null, user)))
+    .catch(err => console.log(err));
+  }
 })
 let client = new Client({token: getApiKey(), client: beeminderFetchClient});
 
@@ -173,11 +181,11 @@ function App() {
     }
     
     const getGoalNames = (key: string) => {
-        // Client should expose user$ with .goals = Goal[]
-        client.goalDataStream$.pipe(
-            map(g => g.slug),
-            map(slug => goalNames.includes(slug) ? goalNames : [...goalNames, slug])
-        ).subscribe(goalNames => setGoalNames(goalNames))
+        client.getGoalNames();
+        client.userDataStream$.pipe(
+          map(user => user.goals)
+        )
+        .subscribe(goals => setGoalNames(goals));
     }
     
     useEffect(() => {
@@ -200,7 +208,20 @@ function App() {
                             {
                                 isAddingGoal &&
                                     <div className="GoalList">
-                                       {goalNames}
+                                      <div className="close-button"
+                                        onClick={() => setIsAddingGoal(false)}
+                                      >
+                                        <span>close</span>
+                                        <FiCheck></FiCheck>
+                                      </div>
+                                       {
+                                        goalNames.map(name => 
+                                        <div key={name}>
+                                          <input type="checkbox" id={name} name={name}>
+                                          </input>
+                                          <label htmlFor={name}>{name}</label>
+                                        </div>)
+                                      }
                                     </div>
                             }
                         </div>) 

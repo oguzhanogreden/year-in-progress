@@ -1,0 +1,21 @@
+.GoalList {
+  position: absolute;
+  top: 0;
+  right: 0;
+  
+  margin: 1em 3em;
+  
+  height: 100%;
+  overflow-y: scroll;
+
+  font-size: medium;
+  
+}
+
+.GoalList .close-button {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  
+  padding-right: .5em;
+}
