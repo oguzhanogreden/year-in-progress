@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import './GoalList.css';
 import './Indicator.css';
 import './Canvas.css'
 import './Goal.css';
@@ -14,6 +13,7 @@ import { GoalResponse, UserResponse } from 'reactive-beeminder-client/dist/api';
 import { Client, IClient } from 'reactive-beeminder-client/dist/client';
 import Settings from './Settings';
 import { getApiKey } from './local-storage';
+import GoalList from './GoalList';
 
 
 const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
@@ -66,7 +66,7 @@ const progress = () => {
 }
 
 type CanvasProps = React.HTMLAttributes<HTMLDivElement> & {
-    goalSlugs: string[]
+    displayGoals: string[]
 }
 type CanvasState = {
   progress: number;
@@ -84,6 +84,7 @@ class Canvas extends React.Component<CanvasProps, CanvasState> {
   
   render() {
     const {year, progress} = this.state ;
+    const { displayGoals } = this.props;
     
     return  <div className={this.props.className}>
 
@@ -98,7 +99,10 @@ class Canvas extends React.Component<CanvasProps, CanvasState> {
       </div>
 
       <div className="canvas__goal-container">
-        <Goal className="Goal" name='Running (Duration)' slug='running-duration'></Goal>
+        {
+          displayGoals.map(goalSlug => <Goal key={goalSlug} className="Goal" name={goalSlug} slug={goalSlug}></Goal>)
+        }
+        
       </div>
 
       <div className="canvas__indicator canvas__indicator--end" >
@@ -170,7 +174,8 @@ class Goal extends React.Component<GoalProps, GoalState> {
 function App() {
     const [key, setKey] = useState(getApiKey())
     const [isAddingGoal, setIsAddingGoal] = useState(true)
-    const [goalNames, setGoalNames] = useState([] as string[])
+    const [goalSlugs, setGoalSlugs] = useState([] as string[])
+    const [selectedGoalSlugs, setSelectedGoalSlugs] = useState(["running-duration"]);
     
     const handleBeeminderKeyChanged = (key: string) => {
         client = new Client({
@@ -185,7 +190,20 @@ function App() {
         client.userDataStream$.pipe(
           map(user => user.goals)
         )
-        .subscribe(goals => setGoalNames(goals));
+        .subscribe(goals => setGoalSlugs(goals));
+    }
+    
+    const handleGoalUnselected = (slug: string) => {
+      const slugs = selectedGoalSlugs.filter(s => s !== slug)
+
+      setSelectedGoalSlugs(slugs);
+      
+    }
+    
+    const handleGoalSelected = (slug: string) => {
+      const slugs = selectedGoalSlugs.filter(s => s !== slug)
+
+      setSelectedGoalSlugs([...slugs, slug]);
     }
     
     useEffect(() => {
@@ -198,7 +216,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={
                         (<div>
-                            <Canvas goalSlugs={goalNames} className="Canvas"></Canvas>
+                            <Canvas displayGoals={selectedGoalSlugs} className="Canvas"></Canvas>
                             {/* <Link to="/settings">Settings</Link> */}
                             { !isAddingGoal &&
                                 <div className="AddGoal">
@@ -207,22 +225,7 @@ function App() {
                             }
                             {
                                 isAddingGoal &&
-                                    <div className="GoalList">
-                                      <div className="close-button"
-                                        onClick={() => setIsAddingGoal(false)}
-                                      >
-                                        <span>close</span>
-                                        <FiCheck></FiCheck>
-                                      </div>
-                                       {
-                                        goalNames.map(name => 
-                                        <div key={name}>
-                                          <input type="checkbox" id={name} name={name}>
-                                          </input>
-                                          <label htmlFor={name}>{name}</label>
-                                        </div>)
-                                      }
-                                    </div>
+                                  <GoalList closeClicked={() => setIsAddingGoal(false)} goalSelected={s => handleGoalSelected(s)} goalUnselected={s => handleGoalUnselected(s)} goalSlugs={goalSlugs}></GoalList>
                             }
                         </div>) 
                     } />
