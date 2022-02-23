@@ -1,11 +1,12 @@
-function getApiKey(): string {
-  const x = localStorage.getItem('key');
-  return x ?? ''
+type StorageKey = "apiToken" | "userName"
+
+function getStringKey(key: StorageKey): string {
+  return localStorage.getItem(key) ?? ''
 }
 
-function storeApiKey(apiKey: string) {
-  localStorage.setItem('key', apiKey)
+function storeStringKey(key: StorageKey, value: string) {
+  localStorage.setItem(key, value)
 }
 
-export { getApiKey, storeApiKey };
+export { getStringKey, storeStringKey };
 
