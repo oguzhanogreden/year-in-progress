@@ -5,14 +5,15 @@ import './Canvas.css'
 import './Goal.css';
 import './Header.css';
 import { DateTime } from 'luxon';
-import { FiArrowLeft, FiArrowRight } from 'react-icons/fi'
-import { BrowserRouter, Link, Route, Routes,} from 'react-router-dom';
+import { FiCheck, FiArrowRight } from 'react-icons/fi'
+import { BrowserRouter, Route, Routes,} from 'react-router-dom';
 import {filter, map, mergeAll, scan, switchMap, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { GoalResponse } from 'reactive-beeminder-client/dist/api';
+import { GoalResponse, UserResponse } from 'reactive-beeminder-client/dist/api';
 import { Client, IClient } from 'reactive-beeminder-client/dist/client';
 import Settings from './Settings';
 import { getApiKey } from './local-storage';
+import GoalList from './GoalList';
 
 
 const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
@@ -25,7 +26,15 @@ const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
     }).then((goal: GoalResponse) => cb(null, goal))
     .catch(err => console.log(err));
   },
-  getUser: (cb) => { throw "not yet implemented"}
+  getUser: (cb) => {
+    const url = `https://www.beeminder.com/api/v1/users/oguzhanogreden.json?auth_token=${token}`;
+    fetch(url).then(response => {
+      if (response.ok) {
+        return response.json()
+      }
+    }).then(((user: UserResponse) => cb(null, user)))
+    .catch(err => console.log(err));
+  }
 })
 let client = new Client({token: getApiKey(), client: beeminderFetchClient});
 
@@ -56,12 +65,15 @@ const progress = () => {
   return +((progress * 100).toFixed(2) );
 }
 
+type CanvasProps = React.HTMLAttributes<HTMLDivElement> & {
+    displayGoals: string[]
+}
 type CanvasState = {
   progress: number;
   year: number,
 };
 
-class Canvas extends React.Component<any, CanvasState> {
+class Canvas extends React.Component<CanvasProps, CanvasState> {
   constructor(props: any) {
     super(props)
     this.state = {
@@ -72,6 +84,7 @@ class Canvas extends React.Component<any, CanvasState> {
   
   render() {
     const {year, progress} = this.state ;
+    const { displayGoals } = this.props;
     
     return  <div className={this.props.className}>
 
@@ -86,7 +99,10 @@ class Canvas extends React.Component<any, CanvasState> {
       </div>
 
       <div className="canvas__goal-container">
-        <Goal className="Goal" name='Running (Duration)'></Goal>
+        {
+          displayGoals.map(goalSlug => <Goal key={goalSlug} className="Goal" name={goalSlug} slug={goalSlug}></Goal>)
+        }
+        
       </div>
 
       <div className="canvas__indicator canvas__indicator--end" >
@@ -100,6 +116,7 @@ class Canvas extends React.Component<any, CanvasState> {
 
 type GoalProps = React.HTMLAttributes<HTMLDivElement> & {
   name: string,
+  slug: string
 }
 type GoalState = {
   relativeProgress: number,
@@ -112,7 +129,7 @@ class Goal extends React.Component<GoalProps, GoalState> {
   }
 
   loadTarget = () => {
-    const slug = "running-duration"
+    const { slug } = this.props;
     client.getGoalData(slug)
     
     const relativeProgress = client.goalDataStream$.pipe(
@@ -156,6 +173,9 @@ class Goal extends React.Component<GoalProps, GoalState> {
 
 function App() {
     const [key, setKey] = useState(getApiKey())
+    const [isAddingGoal, setIsAddingGoal] = useState(true)
+    const [goalSlugs, setGoalSlugs] = useState([] as string[])
+    const [selectedGoalSlugs, setSelectedGoalSlugs] = useState(["running-duration"]);
     
     const handleBeeminderKeyChanged = (key: string) => {
         client = new Client({
@@ -165,14 +185,48 @@ function App() {
         setKey(key) 
     }
     
+    const getGoalNames = (key: string) => {
+        client.getGoalNames();
+        client.userDataStream$.pipe(
+          map(user => user.goals)
+        )
+        .subscribe(goals => setGoalSlugs(goals));
+    }
+    
+    const handleGoalUnselected = (slug: string) => {
+      const slugs = selectedGoalSlugs.filter(s => s !== slug)
+
+      setSelectedGoalSlugs(slugs);
+      
+    }
+    
+    const handleGoalSelected = (slug: string) => {
+      const slugs = selectedGoalSlugs.filter(s => s !== slug)
+
+      setSelectedGoalSlugs([...slugs, slug]);
+    }
+    
+    useEffect(() => {
+        getGoalNames(key);
+    })
+    
     return (
         <div className="App">
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={
                         (<div>
-                            <Canvas className="Canvas"></Canvas>
-                            <Link to="/settings">Settings</Link>
+                            <Canvas displayGoals={selectedGoalSlugs} className="Canvas"></Canvas>
+                            {/* <Link to="/settings">Settings</Link> */}
+                            { !isAddingGoal &&
+                                <div className="AddGoal">
+                                    <button onClick={() => setIsAddingGoal(true)}>Add goal</button>
+                                </div>
+                            }
+                            {
+                                isAddingGoal &&
+                                  <GoalList closeClicked={() => setIsAddingGoal(false)} goalSelected={s => handleGoalSelected(s)} goalUnselected={s => handleGoalUnselected(s)} goalSlugs={goalSlugs}></GoalList>
+                            }
                         </div>) 
                     } />
                     <Route path="/settings" element={<Settings onBeeminderApiKeyChanged={handleBeeminderKeyChanged} />} />
