@@ -5,10 +5,20 @@ import "./Canvas.css";
 import "./Goal.css";
 import "./Header.css";
 import { DateTime } from "luxon";
-import { FiCheck, FiArrowRight } from "react-icons/fi";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { filter, map, mergeAll, scan, switchMap, tap } from "rxjs/operators";
-import { of } from "rxjs";
+import { FiArrowRight } from "react-icons/fi";
+import { Route, Routes, useNavigate } from "react-router-dom";
+import {
+  filter,
+  map,
+  mergeAll,
+  scan,
+  shareReplay,
+  switchMap,
+  take,
+  tap,
+  timeout,
+} from "rxjs/operators";
+import { of, Subject } from "rxjs";
 import { GoalResponse, UserResponse } from "reactive-beeminder-client/dist/api";
 import { Client, IClient } from "reactive-beeminder-client/dist/client";
 import Settings from "./Settings";
@@ -29,7 +39,7 @@ const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
       .catch(err => console.log(err));
   },
   getUser: cb => {
-    const url = `https://www.beeminder.com/api/v1/users/oguzhanogreden.json?auth_token=${token}`;
+    const url = `https://www.beeminder.com/api/v1/users/me.json?auth_token=${token}`;
     fetch(url)
       .then(response => {
         if (response.ok) {
@@ -39,10 +49,6 @@ const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
       .then((user: UserResponse) => cb(null, user))
       .catch(err => console.log(err));
   },
-});
-let client = new Client({
-  token: getStringKey("apiToken"),
-  client: beeminderFetchClient,
 });
 
 type Target = {
@@ -186,27 +192,79 @@ class Goal extends React.Component<GoalProps, GoalState> {
   }
 }
 
+class BeeminderClient {
+  private _apiToken: string | null = null;
+
+  set apiToken(value: string) {
+    this._apiToken = value;
+
+    this.updateClient(this.apiToken);
+  }
+  get apiToken() {
+    return this._apiToken ?? "";
+  }
+
+  _client = new Subject<Client>();
+
+  private updateClient(token: string) {
+    const client = new Client({
+      client: beeminderFetchClient,
+      token,
+    });
+
+    // Get user details
+    client.userDataStream$
+      .pipe(take(1))
+      .subscribe(_ => this._clientAuthenticated.next(null));
+    client.getGoalNames();
+
+    this._client.next(client);
+  }
+
+  _clientAuthenticated = new Subject<null>();
+  clientAuthenticated$ = this._clientAuthenticated.asObservable();
+
+  user$ = this._client.pipe(
+    switchMap(client => {
+      return client.userDataStream$;
+    }),
+    shareReplay(1)
+  );
+
+  constructor() {
+    this.user$.subscribe();
+  }
+}
+
+let client = new Client({
+  token: getStringKey("apiToken"),
+  client: beeminderFetchClient,
+});
+
+let client2 = new BeeminderClient();
+client2.apiToken = getStringKey("apiToken");
+
 function App() {
-  const [key, setKey] = useState(getStringKey("apiToken"));
   const [isAddingGoal, setIsAddingGoal] = useState(true);
   const [goalSlugs, setGoalSlugs] = useState([] as string[]);
   const [selectedGoalSlugs, setSelectedGoalSlugs] = useState([
     "running-duration",
   ]);
+  const navigate = useNavigate();
 
   const handleBeeminderTokenChanged = (apiToken: string) => {
-    client = new Client({
-      client: beeminderFetchClient,
-      token: apiToken,
-    });
-    setKey(apiToken);
+    client2.apiToken = apiToken;
     storeStringKey("apiToken", apiToken);
   };
 
-  const getGoalNames = (key: string) => {
-    client.getGoalNames();
-    client.userDataStream$
-      .pipe(map(user => user.goals))
+  const getGoalNames = () => {
+    console.log(client2.apiToken);
+    client2.user$
+      .pipe(
+        map(user => user.goals),
+        tap(_ => console.log(_)),
+        take(1)
+      )
       .subscribe(goals => setGoalSlugs(goals));
   };
 
@@ -223,58 +281,59 @@ function App() {
   };
 
   useEffect(() => {
-    getGoalNames(key);
+    getGoalNames();
   });
 
-  const handleUserLoggedIn = (l: UserLogin) => {
+  const handleLoginAttempt = (l: UserLogin) => {
+    client2.clientAuthenticated$.pipe(take(1), timeout(1000)).subscribe({
+      // figure out:
+      next: _ => navigate("/year"),
+      error: error => console.error("Request taking too long."),
+    });
     handleBeeminderTokenChanged(l.apiToken);
   };
 
   return (
     <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route
-            path="/"
-            element={<Login userLoggedIn={handleUserLoggedIn}></Login>}
-          />
-          <Route
-            path="/year"
-            element={
-              <div>
-                <Canvas
-                  displayGoals={selectedGoalSlugs}
-                  className="Canvas"
-                ></Canvas>
-                {/* <Link to="/settings">Settings</Link> */}
-                {!isAddingGoal && (
-                  <div className="AddGoal">
-                    <button onClick={() => setIsAddingGoal(true)}>
-                      Add goal
-                    </button>
-                  </div>
-                )}
-                {isAddingGoal && (
-                  <GoalList
-                    closeClicked={() => setIsAddingGoal(false)}
-                    goalSelected={s => handleGoalSelected(s)}
-                    goalUnselected={s => handleGoalUnselected(s)}
-                    goalSlugs={goalSlugs}
-                  ></GoalList>
-                )}
-              </div>
-            }
-          ></Route>
-          <Route
-            path="/settings"
-            element={
-              <Settings
-                onBeeminderApiKeyChanged={handleBeeminderTokenChanged}
-              />
-            }
-          />
-        </Routes>
-      </BrowserRouter>
+      <Routes>
+        <Route
+          path="/"
+          element={<Login loginSubmitted={handleLoginAttempt}></Login>}
+        />
+        <Route
+          path="/year"
+          element={
+            <div>
+              <Canvas
+                displayGoals={selectedGoalSlugs}
+                className="Canvas"
+              ></Canvas>
+              {/* <Link to="/settings">Settings</Link> */}
+              {!isAddingGoal && (
+                <div className="AddGoal">
+                  <button onClick={() => setIsAddingGoal(true)}>
+                    Add goal
+                  </button>
+                </div>
+              )}
+              {isAddingGoal && (
+                <GoalList
+                  closeClicked={() => setIsAddingGoal(false)}
+                  goalSelected={s => handleGoalSelected(s)}
+                  goalUnselected={s => handleGoalUnselected(s)}
+                  goalSlugs={goalSlugs}
+                ></GoalList>
+              )}
+            </div>
+          }
+        ></Route>
+        <Route
+          path="/settings"
+          element={
+            <Settings onBeeminderApiKeyChanged={handleBeeminderTokenChanged} />
+          }
+        />
+      </Routes>
     </div>
   );
 }
