@@ -1,5 +1,6 @@
 import "./Login.scss";
 import { FormEvent, useState } from "react";
+import { Link } from "react-router-dom";
 import { getStringKey } from "./local-storage";
 
 export type UserLogin = {
@@ -22,16 +23,34 @@ const Login = (props: LoginProps) => {
 
   return (
     <div className="Login">
-      <form onSubmit={event => handleSubmit(event)}>
-        <label>
-          api token
-          <input
-            value={apiToken}
-            onChange={event => setApiToken(event.target.value)}
-          ></input>
-        </label>
+      <div>
+        <h1>Welcome!</h1>
 
-        <button type="submit"> Submit</button>
+        <p>
+          <em>year-in-progress</em> is a yearly goal tracker for Beeminder
+          users.{" "}
+        </p>
+
+        <p>
+          <Link to="/tour">Take the tour</Link> to explore the app, or{" "}
+          <a
+            href="https://help.beeminder.com/article/110-authorized-applications"
+            target="_blank"
+          >
+            enter your Beeminder API token
+          </a>{" "}
+          to start :rocket:
+        </p>
+      </div>
+
+      <form onSubmit={event => handleSubmit(event)}>
+        <label>Beeminder API token</label>
+        <input
+          value={apiToken}
+          onChange={event => setApiToken(event.target.value)}
+        ></input>
+
+        <button type="submit">Get started!</button>
       </form>
     </div>
   );
