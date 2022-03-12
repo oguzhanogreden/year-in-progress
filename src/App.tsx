@@ -146,9 +146,9 @@ class Goal extends React.Component<GoalProps, GoalState> {
 
   loadTarget = () => {
     const { slug } = this.props;
-    client.getGoalData(slug);
+    client2._client.getGoalData(slug); // TODO: Remove client2 if _client is actually fine now!
 
-    const relativeProgress = client.goalDataStream$.pipe(
+    const relativeProgress = client2._client.goalDataStream$.pipe(
       filter(goal => goal.slug === slug),
       switchMap(goal => of(goal.dataPoints)),
       mergeAll(),
@@ -198,41 +198,26 @@ class BeeminderClient {
   set apiToken(value: string) {
     this._apiToken = value;
 
-    this.updateClient(this.apiToken);
+    this._client.setToken(value);
+    this._client.getGoalNames(); // smelly stuff due to client implementation
   }
+
   get apiToken() {
     return this._apiToken ?? "";
   }
 
-  _client = new Subject<Client>();
+  _client = new Client({
+    client: beeminderFetchClient,
+    token: "",
+  });
 
-  private updateClient(token: string) {
-    const client = new Client({
-      client: beeminderFetchClient,
-      token,
-    });
-
-    // Get user details
-    client.userDataStream$
-      .pipe(take(1))
-      .subscribe(_ => this._clientAuthenticated.next(null));
-    client.getGoalNames();
-
-    this._client.next(client);
-  }
-
-  _clientAuthenticated = new Subject<null>();
-  clientAuthenticated$ = this._clientAuthenticated.asObservable();
-
-  user$ = this._client.pipe(
-    switchMap(client => {
-      return client.userDataStream$;
-    }),
-    shareReplay(1)
-  );
+  // _clientAuthenticated = new Subject<null>();
+  // clientAuthenticated$ = this._clientAuthenticated.asObservable();
+  user$ = this._client.userDataStream$;
+  clientAuthenticated$ = this.user$.pipe(take(1)); // Leaving this just as a refactor, TODO: clean up while getting rid of this weirdass wrapper
 
   constructor() {
-    this.user$.subscribe();
+    // this._client.
   }
 }
 
@@ -262,7 +247,7 @@ function App() {
     client2.user$
       .pipe(
         map(user => user.goals),
-        tap(_ => console.log(_)),
+        // tap(_ => console.log(_)),
         take(1)
       )
       .subscribe(goals => setGoalSlugs(goals));
@@ -285,11 +270,13 @@ function App() {
   });
 
   const handleLoginAttempt = (l: UserLogin) => {
+    console.log("handleLoginAttempt - i");
     client2.clientAuthenticated$.pipe(take(1), timeout(1000)).subscribe({
       // figure out:
       next: _ => navigate("/year"),
       error: error => console.error("Request taking too long."),
     });
+    console.log("handleLoginAttempt - ii");
     handleBeeminderTokenChanged(l.apiToken);
   };
 

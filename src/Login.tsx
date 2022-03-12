@@ -19,6 +19,7 @@ const Login = (props: LoginProps) => {
       apiToken,
     });
     value.preventDefault();
+    console.log("handleSubmit over.");
   };
 
   return (
@@ -47,7 +48,10 @@ const Login = (props: LoginProps) => {
         <label>Beeminder API token</label>
         <input
           value={apiToken}
-          onChange={event => setApiToken(event.target.value)}
+          onChange={event => {
+            console.log("onChange - token");
+            setApiToken(event.target.value);
+          }}
         ></input>
 
         <button type="submit">Get started!</button>
