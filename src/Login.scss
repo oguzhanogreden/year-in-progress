@@ -1,0 +1,19 @@
+$gap: 0.25em;
+$submit-margin-top: $gap * 2;
+
+.Login {
+  form {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: $gap;
+
+    label {
+      font-size: 0.75em;
+    }
+
+    button {
+      margin-top: $submit-margin-top;
+      width: 100%;
+    }
+  }
+}
