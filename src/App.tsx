@@ -207,7 +207,6 @@ function App() {
   const navigate = useNavigate();
 
   const handleBeeminderTokenChanged = (apiToken: string) => {
-    debugger;
     client.setToken(apiToken);
     storeStringKey("apiToken", apiToken);
   };
