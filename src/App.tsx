@@ -146,9 +146,9 @@ class Goal extends React.Component<GoalProps, GoalState> {
 
   loadTarget = () => {
     const { slug } = this.props;
-    client2._client.getGoalData(slug); // TODO: Remove client2 if _client is actually fine now!
+    client.getGoalData(slug);
 
-    const relativeProgress = client2._client.goalDataStream$.pipe(
+    const relativeProgress = client.goalDataStream$.pipe(
       filter(goal => goal.slug === slug),
       switchMap(goal => of(goal.dataPoints)),
       mergeAll(),
@@ -156,7 +156,7 @@ class Goal extends React.Component<GoalProps, GoalState> {
         dataPoint =>
           DateTime.fromSeconds(dataPoint.timestamp) >
           DateTime.fromObject({ year: 2022 })
-      ), // TODO: Install luxon
+      ),
       map(dataPoint => dataPoint.value),
       scan((total, value) => total + value, 0),
       map(total => {
@@ -192,42 +192,11 @@ class Goal extends React.Component<GoalProps, GoalState> {
   }
 }
 
-class BeeminderClient {
-  private _apiToken: string | null = null;
-
-  set apiToken(value: string) {
-    this._apiToken = value;
-
-    this._client.setToken(value);
-    this._client.getGoalNames(); // smelly stuff due to client implementation
-  }
-
-  get apiToken() {
-    return this._apiToken ?? "";
-  }
-
-  _client = new Client({
-    client: beeminderFetchClient,
-    token: "",
-  });
-
-  // _clientAuthenticated = new Subject<null>();
-  // clientAuthenticated$ = this._clientAuthenticated.asObservable();
-  user$ = this._client.userDataStream$;
-  clientAuthenticated$ = this.user$.pipe(take(1)); // Leaving this just as a refactor, TODO: clean up while getting rid of this weirdass wrapper
-
-  constructor() {
-    // this._client.
-  }
-}
-
 let client = new Client({
   token: getStringKey("apiToken"),
   client: beeminderFetchClient,
 });
-
-let client2 = new BeeminderClient();
-client2.apiToken = getStringKey("apiToken");
+client.setToken(getStringKey("apiToken"));
 
 function App() {
   const [isAddingGoal, setIsAddingGoal] = useState(true);
@@ -238,13 +207,13 @@ function App() {
   const navigate = useNavigate();
 
   const handleBeeminderTokenChanged = (apiToken: string) => {
-    client2.apiToken = apiToken;
+    debugger;
+    client.setToken(apiToken);
     storeStringKey("apiToken", apiToken);
   };
 
   const getGoalNames = () => {
-    console.log(client2.apiToken);
-    client2.user$
+    client.userDataStream$
       .pipe(
         map(user => user.goals),
         // tap(_ => console.log(_)),
@@ -270,13 +239,13 @@ function App() {
   });
 
   const handleLoginAttempt = (l: UserLogin) => {
-    console.log("handleLoginAttempt - i");
-    client2.clientAuthenticated$.pipe(take(1), timeout(1000)).subscribe({
-      // figure out:
+    // Here was a clientAuthenticated$ stream.
+    // Current version is just a refactor of that, not sure if its definition still makes sense.
+    // TODO: Move this event to Client?
+    client.userDataStream$.pipe(take(1), timeout(1000)).subscribe({
       next: _ => navigate("/year"),
       error: error => console.error("Request taking too long."),
     });
-    console.log("handleLoginAttempt - ii");
     handleBeeminderTokenChanged(l.apiToken);
   };
 
