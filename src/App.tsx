@@ -4,21 +4,13 @@ import "./Indicator.css";
 import "./Canvas.css";
 import "./Goal.css";
 import "./Header.css";
-import { DateTime } from "luxon";
 import { FiArrowRight } from "react-icons/fi";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import {
-  filter,
   map,
-  mergeAll,
-  scan,
-  shareReplay,
-  switchMap,
   take,
-  tap,
   timeout,
 } from "rxjs/operators";
-import { of, Subject } from "rxjs";
 import { GoalResponse, UserResponse } from "reactive-beeminder-client/dist/api";
 import { Client, IClient } from "reactive-beeminder-client/dist/client";
 import Settings from "./Settings";
