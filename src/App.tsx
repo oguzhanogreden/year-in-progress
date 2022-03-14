@@ -17,7 +17,7 @@ import Settings from "./Settings";
 import { getJsonKey, getStringKey, storeStringKey } from "./utils/local-storage";
 import GoalList from "./GoalList";
 import Login, { UserLogin } from "./Login";
-import Goal from "./Goal";
+import GoalComponent from "./Goal";
 import { progress } from "./utils/year-progress";
 
 const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
@@ -90,13 +90,13 @@ class Canvas extends React.Component<CanvasProps, CanvasState> {
 
         <div className="canvas__goal-container">
           {displayGoals.map(goalSlug => (
-            <Goal
+            <GoalComponent
               key={goalSlug}
               className="Goal"
               name={goalSlug}
               slug={goalSlug}
               client={client}
-            ></Goal>
+            ></GoalComponent>
           ))}
         </div>
 

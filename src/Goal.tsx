@@ -15,7 +15,7 @@ type GoalState = {
   relativeProgress: number;
 };
 
-class Goal extends React.Component<GoalProps, GoalState> {
+class GoalComponent extends React.Component<GoalProps, GoalState> {
   constructor(props: any) {
     super(props);
     this.state = { relativeProgress: 0 };
@@ -69,4 +69,4 @@ class Goal extends React.Component<GoalProps, GoalState> {
   }
 }
 
-export default Goal;
+export default GoalComponent;
