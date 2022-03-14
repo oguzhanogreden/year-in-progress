@@ -26,6 +26,7 @@ import { getStringKey, storeStringKey } from "./local-storage";
 import GoalList from "./GoalList";
 import Login, { UserLogin } from "./Login";
 import Goal from "./Goal";
+import { progress } from "./utils/year-progress";
 
 const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
   getGoal: (goalName, cb) => {
@@ -63,23 +64,6 @@ export const targets: Target[] = [
     target: 31.05,
   },
 ];
-
-export const progress = () => {
-  // TODO: Move this
-  const now = DateTime.now();
-  const startOfYear = DateTime.fromObject({
-    year: now.year,
-    day: 1,
-    month: 1,
-  });
-  const endOfYear = startOfYear.plus({ year: 1 }).minus({ second: 1 });
-
-  const yearDuration = endOfYear.minus(startOfYear.toMillis()).toMillis();
-
-  const progress = now.minus(startOfYear.toMillis()).toMillis() / yearDuration;
-
-  return +(progress * 100).toFixed(2);
-};
 
 type CanvasProps = React.HTMLAttributes<HTMLDivElement> & {
   displayGoals: string[];
