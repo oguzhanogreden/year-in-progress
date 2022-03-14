@@ -1,7 +1,7 @@
 import "./Login.scss";
 import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
-import { getStringKey } from "./local-storage";
+import { getStringKey } from "./utils/local-storage";
 
 export type UserLogin = {
   apiToken: string;

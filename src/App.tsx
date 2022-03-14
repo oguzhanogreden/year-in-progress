@@ -22,7 +22,7 @@ import { of, Subject } from "rxjs";
 import { GoalResponse, UserResponse } from "reactive-beeminder-client/dist/api";
 import { Client, IClient } from "reactive-beeminder-client/dist/client";
 import Settings from "./Settings";
-import { getStringKey, storeStringKey } from "./local-storage";
+import { getJsonKey, getStringKey, storeStringKey } from "./utils/local-storage";
 import GoalList from "./GoalList";
 import Login, { UserLogin } from "./Login";
 import Goal from "./Goal";
