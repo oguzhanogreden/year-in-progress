@@ -8,11 +8,12 @@ export type UserLogin = {
 };
 
 type LoginProps = {
+  apiToken: string;
   loginSubmitted: (l: UserLogin) => void;
 };
 
 const Login = (props: LoginProps) => {
-  const [apiToken, setApiToken] = useState(getStringKey("apiToken"));
+  const [apiToken, setApiToken] = useState(props.apiToken);
 
   const handleSubmit = (value: FormEvent<HTMLFormElement>) => {
     props.loginSubmitted({

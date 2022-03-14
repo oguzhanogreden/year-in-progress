@@ -6,19 +6,20 @@ import "./Goal.css";
 import "./Header.css";
 import { FiArrowRight } from "react-icons/fi";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import {
-  map,
-  take,
-  timeout,
-} from "rxjs/operators";
+import { map, take, timeout } from "rxjs/operators";
 import { GoalResponse, UserResponse } from "reactive-beeminder-client/dist/api";
 import { Client, IClient } from "reactive-beeminder-client/dist/client";
 import Settings from "./Settings";
-import { getJsonKey, getStringKey, storeStringKey } from "./utils/local-storage";
+import {
+  getJsonKey,
+  getStringKey,
+  storeStringKey,
+} from "./utils/local-storage";
 import GoalList from "./GoalList";
-import Login, { UserLogin } from "./Login";
+import Login from "./Login";
 import GoalComponent from "./Goal";
 import { progress } from "./utils/year-progress";
+import UserContext from "./contexts/user-context";
 
 const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
   getGoal: (goalName, cb) => {
@@ -155,7 +156,7 @@ function App() {
     getGoalNames();
   });
 
-  const handleLoginAttempt = (l: UserLogin) => {
+  const handleLoginAttempt = (token: string) => {
     // Here was a clientAuthenticated$ stream.
     // Current version is just a refactor of that, not sure if its definition still makes sense.
     // TODO: Move this event to Client?
@@ -163,7 +164,7 @@ function App() {
       next: _ => navigate("/year"),
       error: error => console.error("Request taking too long."),
     });
-    handleBeeminderTokenChanged(l.apiToken);
+    handleBeeminderTokenChanged(token);
   };
 
   return (
@@ -171,7 +172,20 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={<Login loginSubmitted={handleLoginAttempt}></Login>}
+          element={
+            <UserContext.Consumer>
+              {user => (
+                <Login
+                  apiToken={user.apiToken}
+                  loginSubmitted={login => {
+                    const token = login.apiToken;
+                    user.setApiToken(token);
+                    handleLoginAttempt(token);
+                  }}
+                ></Login>
+              )}
+            </UserContext.Consumer>
+          }
         />
         <Route
           path="/year"

@@ -1,5 +1,5 @@
 type StorageKey = "apiToken" | "userName" | JsonStorageKey;
-type JsonStorageKey = "goals";
+type JsonStorageKey = "User" | "goals";
 
 // TODO: #12 Now the compiler will be fine with `JsonStorageKey` when I'm trying
 //       to read a string key.
