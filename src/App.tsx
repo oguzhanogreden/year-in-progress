@@ -6,7 +6,7 @@ import "./Goal.css";
 import "./Header.css";
 import { FiArrowRight } from "react-icons/fi";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import { map, take, timeout } from "rxjs/operators";
+import { map, take, tap, timeout } from "rxjs/operators";
 import { GoalResponse, UserResponse } from "reactive-beeminder-client/dist/api";
 import { Client, IClient } from "reactive-beeminder-client/dist/client";
 import Settings from "./Settings";
@@ -117,12 +117,20 @@ let client = new Client({
 });
 client.setToken(getStringKey("apiToken"));
 
+type AppGoal = {
+  slug: string;
+};
+
+function readGoalsFromStorage(): AppGoal[] {
+  const goals: AppGoal[] = getJsonKey("goals");
+
+  return goals ?? [];
+}
+
 function App() {
   const [isAddingGoal, setIsAddingGoal] = useState(true);
   const [goalSlugs, setGoalSlugs] = useState([] as string[]);
-  const [selectedGoalSlugs, setSelectedGoalSlugs] = useState([
-    "running-duration",
-  ]);
+  const [selectedGoals, setSelectedGoals] = useState(readGoalsFromStorage());
   const navigate = useNavigate();
 
   const handleBeeminderTokenChanged = (apiToken: string) => {
@@ -138,18 +146,6 @@ function App() {
         take(1)
       )
       .subscribe(goals => setGoalSlugs(goals));
-  };
-
-  const handleGoalUnselected = (slug: string) => {
-    const slugs = selectedGoalSlugs.filter(s => s !== slug);
-
-    setSelectedGoalSlugs(slugs);
-  };
-
-  const handleGoalSelected = (slug: string) => {
-    const slugs = selectedGoalSlugs.filter(s => s !== slug);
-
-    setSelectedGoalSlugs([...slugs, slug]);
   };
 
   useEffect(() => {
@@ -192,7 +188,7 @@ function App() {
           element={
             <div>
               <Canvas
-                displayGoals={selectedGoalSlugs}
+                displayGoals={selectedGoals.map(g => g.slug)}
                 className="Canvas"
               ></Canvas>
               {/* <Link to="/settings">Settings</Link> */}
@@ -206,8 +202,12 @@ function App() {
               {isAddingGoal && (
                 <GoalList
                   closeClicked={() => setIsAddingGoal(false)}
-                  goalSelected={s => handleGoalSelected(s)}
-                  goalUnselected={s => handleGoalUnselected(s)}
+                  goalSelected={slug => {
+                    setSelectedGoals([...selectedGoals, { slug: slug }]);
+                  }}
+                  goalUnselected={s => {
+                    setSelectedGoals(selectedGoals.filter(g => g.slug !== s));
+                  }}
                   goalSlugs={goalSlugs}
                 ></GoalList>
               )}
