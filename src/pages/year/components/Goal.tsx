@@ -3,8 +3,8 @@ import React from "react";
 import { Client } from "reactive-beeminder-client/dist/client";
 import { of } from "rxjs";
 import { filter, map, mergeAll, scan, switchMap } from "rxjs/operators";
-import { targets } from "./App";
-import { progress } from "./utils/year-progress";
+import { targets } from "../../../App";
+import { progress } from "../../../utils/year-progress";
 
 type GoalProps = React.HTMLAttributes<HTMLDivElement> & {
   name: string;

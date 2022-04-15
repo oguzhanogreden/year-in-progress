@@ -1,25 +1,16 @@
-import React, { useEffect, useState } from "react";
 import "./App.scss";
 import "./Indicator.css";
 import "./Canvas.css";
-import "./Goal.css";
 import "./Header.css";
-import { FiArrowRight } from "react-icons/fi";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import { map, take, tap, timeout } from "rxjs/operators";
+import { take, timeout } from "rxjs/operators";
 import { GoalResponse, UserResponse } from "reactive-beeminder-client/dist/api";
 import { Client, IClient } from "reactive-beeminder-client/dist/client";
 import Settings from "./Settings";
-import {
-  getJsonKey,
-  getStringKey,
-  storeStringKey,
-} from "./utils/local-storage";
-import GoalList from "./GoalList";
+import { getStringKey, storeStringKey } from "./utils/local-storage";
 import Login from "./Login";
-import GoalComponent from "./Goal";
-import { progress } from "./utils/year-progress";
 import UserContext from "./contexts/user-context";
+import Year from "./pages/year/Year";
 
 const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
   getGoal: (goalName, cb) => {
@@ -58,99 +49,24 @@ export const targets: Target[] = [
   },
 ];
 
-type CanvasProps = React.HTMLAttributes<HTMLDivElement> & {
-  displayGoals: string[];
-};
-type CanvasState = {
-  progress: number;
-  year: number;
-};
-
-class Canvas extends React.Component<CanvasProps, CanvasState> {
-  constructor(props: any) {
-    super(props);
-    this.state = {
-      year: 2022,
-      progress: progress(),
-    };
-  }
-
-  render() {
-    const { year, progress } = this.state;
-    const { displayGoals } = this.props;
-
-    return (
-      <div className={this.props.className}>
-        <div className="Header">
-          <div className="Indicator"></div>
-          <div>
-            <p>This here is now.</p>
-            <p>Progress: {progress}%</p>
-          </div>
-        </div>
-
-        <div className="canvas__goal-container">
-          {displayGoals.map(goalSlug => (
-            <GoalComponent
-              key={goalSlug}
-              className="Goal"
-              name={goalSlug}
-              slug={goalSlug}
-              client={client}
-            ></GoalComponent>
-          ))}
-        </div>
-
-        <div className="canvas__indicator canvas__indicator--end">
-          <span className="text">This side is</span>
-          <span>2023</span>
-          <FiArrowRight className="arrow"></FiArrowRight>
-        </div>
-      </div>
-    );
-  }
-}
-
 let client = new Client({
   token: getStringKey("apiToken"),
   client: beeminderFetchClient,
 });
 client.setToken(getStringKey("apiToken"));
 
-type AppGoal = {
+export type AppGoal = {
   slug: string;
+  target?: Target;
 };
 
-function readGoalsFromStorage(): AppGoal[] {
-  const goals: AppGoal[] = getJsonKey("goals");
-
-  return goals ?? [];
-}
-
 function App() {
-  const [isAddingGoal, setIsAddingGoal] = useState(true);
-  const [goalSlugs, setGoalSlugs] = useState([] as string[]);
-  const [selectedGoals, setSelectedGoals] = useState(readGoalsFromStorage());
   const navigate = useNavigate();
 
   const handleBeeminderTokenChanged = (apiToken: string) => {
     client.setToken(apiToken);
     storeStringKey("apiToken", apiToken);
   };
-
-  const getGoalNames = () => {
-    client.userDataStream$
-      .pipe(
-        map(user => user.goals),
-        // tap(_ => console.log(_)),
-        take(1)
-      )
-      .subscribe(goals => setGoalSlugs(goals));
-  };
-
-  useEffect(() => {
-    getGoalNames();
-  });
 
   const handleLoginAttempt = (token: string) => {
     // Here was a clientAuthenticated$ stream.
@@ -183,37 +99,7 @@ function App() {
             </UserContext.Consumer>
           }
         />
-        <Route
-          path="/year"
-          element={
-            <div>
-              <Canvas
-                displayGoals={selectedGoals.map(g => g.slug)}
-                className="Canvas"
-              ></Canvas>
-              {/* <Link to="/settings">Settings</Link> */}
-              {!isAddingGoal && (
-                <div className="AddGoal">
-                  <button onClick={() => setIsAddingGoal(true)}>
-                    Add goal
-                  </button>
-                </div>
-              )}
-              {isAddingGoal && (
-                <GoalList
-                  closeClicked={() => setIsAddingGoal(false)}
-                  goalSelected={slug => {
-                    setSelectedGoals([...selectedGoals, { slug: slug }]);
-                  }}
-                  goalUnselected={s => {
-                    setSelectedGoals(selectedGoals.filter(g => g.slug !== s));
-                  }}
-                  goalSlugs={goalSlugs}
-                ></GoalList>
-              )}
-            </div>
-          }
-        ></Route>
+        <Route path="/year" element={<Year client={client}></Year>}></Route>
         <Route
           path="/settings"
           element={
