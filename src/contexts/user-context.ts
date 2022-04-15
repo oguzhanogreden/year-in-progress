@@ -1,5 +1,5 @@
 import React from "react";
-import { getJsonKey, getStringKey, storeStringKey } from "../utils/local-storage";
+import { getStringKey, storeStringKey } from "../utils/local-storage";
 
 type User = {
   apiToken: string,
@@ -19,6 +19,6 @@ const defaultUser: User = {
   }
 };
 
-const UserContext = React.createContext<User>(getJsonKey('User') ?? defaultUser);
+const UserContext = React.createContext<User>(defaultUser);
 
 export default UserContext;
