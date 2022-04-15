@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Client } from "reactive-beeminder-client/dist/client";
 import { map, take, tap } from "rxjs/operators";
 import { AppGoal } from "../../App";
@@ -14,7 +14,8 @@ type YearProps = {
 const Year = (props: YearProps) => {
   const [isAddingGoal, setIsAddingGoal] = useState(true);
   const [selectedGoals, setSelectedGoals] = useState(readGoalsFromStorage());
-  const [goalSlugs, setGoalSlugs] = useState([] as string[]);
+
+  const user = useContext(UserContext);
 
   const getGoalNames = () => {
     props.client.userDataStream$
@@ -23,9 +24,9 @@ const Year = (props: YearProps) => {
         tap(_ => console.log(_)),
         take(1)
       )
-      .subscribe(goals => {
+      .subscribe(goalSlugs => {
         // TODO: Also refer to context here?
-        setGoalSlugs(goals);
+        user.setGoalSlugs(goalSlugs);
       });
   };
 
@@ -48,22 +49,18 @@ const Year = (props: YearProps) => {
         </div>
       )}
       {isAddingGoal && (
-        <UserContext.Consumer>
-          {user => (
-            <GoalList
-              closeClicked={() => setIsAddingGoal(false)}
-              goalSelected={slug => {
-                setSelectedGoals([...selectedGoals, { slug: slug }]);
-                user.setGoalSlugs([...goalSlugs, slug]);
-              }}
-              goalUnselected={s => {
-                setSelectedGoals(selectedGoals.filter(g => g.slug !== s));
-                user.setGoalSlugs(goalSlugs.filter(slug => slug !== s));
-              }}
-              goalSlugs={goalSlugs}
-            ></GoalList>
-          )}
-        </UserContext.Consumer>
+        <GoalList
+          closeClicked={() => setIsAddingGoal(false)}
+          goalSelected={slug => {
+            setSelectedGoals([...selectedGoals, { slug: slug }]);
+            user.setGoalSlugs([...user.goalSlugs, slug]);
+          }}
+          goalUnselected={s => {
+            setSelectedGoals(selectedGoals.filter(g => g.slug !== s));
+            user.setGoalSlugs(user.goalSlugs.filter(slug => slug !== s));
+          }}
+          goalSlugs={user.goalSlugs}
+        ></GoalList>
       )}
     </div>
   );
