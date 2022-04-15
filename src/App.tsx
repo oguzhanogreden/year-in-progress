@@ -9,7 +9,7 @@ import { Client, IClient } from "reactive-beeminder-client/dist/client";
 import Settings from "./Settings";
 import { getStringKey, storeStringKey } from "./utils/local-storage";
 import Login from "./Login";
-import UserContext from "./contexts/user-context";
+import UserContext, { Target } from "./contexts/user-context";
 import Year from "./pages/year/Year";
 import { useContext, useEffect } from "react";
 
@@ -38,10 +38,6 @@ const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
   },
 });
 
-type Target = {
-  name: string;
-  target: number;
-};
 export const targets: Target[] = [
   // TODO: #6
   {
@@ -55,11 +51,6 @@ let client = new Client({
   client: beeminderFetchClient,
 });
 client.setToken(getStringKey("apiToken"));
-
-export type AppGoal = {
-  slug: string;
-  target?: Target;
-};
 
 function App() {
   const navigate = useNavigate();
@@ -84,8 +75,8 @@ function App() {
   const getGoalNames = () => {
     client.userDataStream$
       .pipe(
-        map(user => user.goals),
         tap(_ => console.log(_)),
+        map(user => user.goals),
         take(1)
       )
       .subscribe(goalSlugs => user.setGoalSlugs(goalSlugs));
