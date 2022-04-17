@@ -3,6 +3,7 @@ import { Client } from "reactive-beeminder-client/dist/client";
 import UserContext, { AppGoal } from "../../contexts/user-context";
 import GoalListModal from "./components/GoalListModal";
 import Canvas from "./components/Canvas";
+import "./AddGoal.scss";
 
 type YearProps = {
   client: Client;
@@ -12,7 +13,7 @@ const Year = (props: YearProps) => {
   // Longterm-TODO:
   // - Initial render with isAddingGoal===true?
 
-  const [isAddingGoal, setIsAddingGoal] = useState(true);
+  const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [goals, setGoals] = useState([] as AppGoal[]);
 
   const user = useContext(UserContext);
