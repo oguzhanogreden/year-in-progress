@@ -1,8 +1,6 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Client } from "reactive-beeminder-client/dist/client";
-import { map, take, tap } from "rxjs/operators";
-import { AppGoal } from "../../App";
-import UserContext from "../../contexts/user-context";
+import UserContext, { AppGoal } from "../../contexts/user-context";
 import GoalList from "../../GoalList";
 import Canvas from "./components/Canvas";
 
@@ -11,32 +9,50 @@ type YearProps = {
 };
 
 const Year = (props: YearProps) => {
-  const [isAddingGoal, setIsAddingGoal] = useState(false);
-  const [selectedGoals, setSelectedGoals] = useState([] as AppGoal[]);
+  // Longterm-TODO:
+  // - Initial render with isAddingGoal===true?
+
+  const [isAddingGoal, setIsAddingGoal] = useState(true);
+  const [goals, setGoals] = useState([] as AppGoal[]);
 
   const user = useContext(UserContext);
+
+  const { client } = props;
+
+  const handleAddGoalClicked = () => {
+    client.getUser();
+    setIsAddingGoal(true);
+  };
+
+  const handleAddGoalClosed = () => {
+    setIsAddingGoal(false);
+  };
 
   return (
     <div>
       <Canvas
-        client={props.client}
-        displayGoals={selectedGoals.map(g => g.slug)}
+        client={client}
+        displayGoals={goals.map(g => g.slug)}
         className="Canvas"
       ></Canvas>
+
       {/* <Link to="/settings">Settings</Link> */}
+
       {!isAddingGoal && (
         <div className="AddGoal">
-          <button onClick={() => setIsAddingGoal(true)}>Add goal</button>
+          <button onClick={() => handleAddGoalClicked()}>Add goal</button>
         </div>
       )}
+
       {isAddingGoal && (
         <GoalList
-          closeClicked={() => setIsAddingGoal(false)}
+          client={client}
+          closeClicked={() => handleAddGoalClosed()}
           goalSelected={slug => {
-            setSelectedGoals([...selectedGoals, { slug: slug }]);
+            setGoals([...goals, { slug: slug }]);
           }}
           goalUnselected={s => {
-            setSelectedGoals(selectedGoals.filter(g => g.slug !== s));
+            setGoals(goals.filter(g => g.slug !== s));
           }}
           goalSlugs={user.goalSlugs}
         ></GoalList>

@@ -1,11 +1,5 @@
 .GoalList {
-  position: absolute;
-  top: 0;
-  right: 0;
-  
-  margin: 1em 3em;
-  
-  height: 100%;
+  height: 10em;
   overflow-y: scroll;
 
   font-size: medium;

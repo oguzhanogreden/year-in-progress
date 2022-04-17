@@ -17,7 +17,7 @@ type User = {
   setApiToken: (token: string) => void
 
   goals: AppGoal[];
-  addOrUpdateGoal: (goal: AppGoal) => void;
+  setGoals: (goal: AppGoal[]) => void;
 
   goalSlugs: string[];
   setGoalSlugs: (slugs: string[]) => void;
@@ -29,17 +29,13 @@ const defaultUser: User = {
 
   goalSlugs: [],
   setGoalSlugs: function (slugs: string[]): void {
+    console.log(slugs);
     this.goalSlugs = slugs;
   },
 
   goals: [],
-  addOrUpdateGoal: function (goal: AppGoal) {
-    const { slug } = goal;
-
-    const current = this.goals.find(g => g.slug === slug);
-
-    this.goals = [...this.goals.filter(g => g.slug !== slug), current ? { ...goal, target: current.target } : goal]
-
+  setGoals: function (goals: AppGoal[]) {
+    this.goals = goals;
   }
 };
 
