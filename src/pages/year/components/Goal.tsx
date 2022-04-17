@@ -1,29 +1,32 @@
 import { DateTime } from "luxon";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Client } from "reactive-beeminder-client/dist/client";
 import { of } from "rxjs";
 import { filter, map, mergeAll, scan, switchMap } from "rxjs/operators";
 import { targets } from "../../../App";
+import { AppGoal } from "../../../contexts/user-context";
 import { progress } from "../../../utils/year-progress";
 import "./Goal.scss";
 
 type GoalProps = React.HTMLAttributes<HTMLDivElement> & {
-  name: string;
-  slug: string;
+  goal: AppGoal;
   client: Client;
 };
 type GoalState = {
   relativeProgress: number;
 };
 
-class GoalComponent extends React.Component<GoalProps, GoalState> {
-  constructor(props: any) {
-    super(props);
-    this.state = { relativeProgress: 0 };
-  }
+function GoalComponent(props: GoalProps) {
+  const [relativeProgress, setRelativeProgress] = useState(0);
 
-  loadTarget = () => {
-    const { slug, client } = this.props;
+  useEffect(() => {
+    loadTarget();
+  });
+
+  const loadTarget = () => {
+    const { goal, client } = props;
+
+    const slug = goal.slug;
     client.getGoalData(slug);
 
     const relativeProgress = client.goalDataStream$.pipe(
@@ -45,29 +48,23 @@ class GoalComponent extends React.Component<GoalProps, GoalState> {
     );
 
     relativeProgress.subscribe({
-      next: relativeProgress => this.setState({ relativeProgress }),
+      next: relativeProgress => setRelativeProgress(relativeProgress),
     });
   };
 
-  componentDidMount() {
-    this.loadTarget();
-  }
-
-  render() {
-    const { name } = this.props;
-    const { relativeProgress } = this.state;
-
-    const style: React.CSSProperties = {
-      // left: `${relativeProgress}%`,
-    };
-    return (
-      <div className={this.props.className} style={style}>
-        {/* CONV */}
-        <p>{name}</p>
-        <p> Delta: {relativeProgress.toFixed(1)}% </p>
-      </div>
-    );
-  }
+  const style: React.CSSProperties = {
+    // left: `${relativeProgress}%`,
+  };
+  return (
+    <div
+      className={`${props.className} ${props.goal.target ?? "invalid"}`}
+      style={style}
+    >
+      {/* CONV */}
+      <p>{props.goal.slug}</p>
+      <p> Delta: {relativeProgress.toFixed(2)}% </p>
+    </div>
+  );
 }
 
 export default GoalComponent;

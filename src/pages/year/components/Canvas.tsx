@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiArrowRight } from "react-icons/fi";
 import { Client } from "reactive-beeminder-client/dist/client";
 import { progress as getProgress } from "../../../utils/year-progress";
@@ -28,9 +28,8 @@ function Canvas(props: CanvasProps) {
         {props.displayGoals.map(goal => (
           <GoalComponent
             key={goal.slug}
-            className={`Goal ${goal.target ? "" : "invalid"}`}
-            name={goal.slug}
-            slug={goal.slug}
+            className={`Goal`}
+            goal={goal}
             client={props.client} // TODO: Add to context?
           ></GoalComponent>
         ))}
