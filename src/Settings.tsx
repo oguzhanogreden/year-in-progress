@@ -1,8 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { BrowserRouter, Link, Route } from "react-router-dom";
-import { filter, map, mergeAll, scan, switchMap, tap } from "rxjs/operators";
-import { of } from "rxjs";
-import { storeStringKey } from "./local-storage";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
 function Settings({
   onBeeminderApiKeyChanged,

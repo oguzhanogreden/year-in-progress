@@ -1,0 +1,55 @@
+:root {
+  --padding: 24px;
+  --title-size: larger;
+}
+
+h1 {
+  font-size: var(--title-size);
+  margin-top: 0;
+}
+
+.GoalListModal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  
+  padding: var(--padding);
+
+  background-color: white;
+  opacity: 95%;
+
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 24px;
+}
+
+.close-button {
+  position: absolute;
+  top: var(--padding);
+  right: var(--padding);
+  
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+}
+
+.close-button > svg {
+  margin-left: 6px;
+}
+
+.item-container {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.GoalListItem {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+}
+
+.GoalListItem > input[type="checkbox"] {
+  margin-right: 1em;
+}

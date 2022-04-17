@@ -3,8 +3,8 @@ import React from "react";
 import { Client } from "reactive-beeminder-client/dist/client";
 import { of } from "rxjs";
 import { filter, map, mergeAll, scan, switchMap } from "rxjs/operators";
-import { targets } from "./App";
-import { progress } from "./utils/year-progress";
+import { targets } from "../../../App";
+import { progress } from "../../../utils/year-progress";
 
 type GoalProps = React.HTMLAttributes<HTMLDivElement> & {
   name: string;
@@ -15,7 +15,7 @@ type GoalState = {
   relativeProgress: number;
 };
 
-class Goal extends React.Component<GoalProps, GoalState> {
+class GoalComponent extends React.Component<GoalProps, GoalState> {
   constructor(props: any) {
     super(props);
     this.state = { relativeProgress: 0 };
@@ -69,4 +69,4 @@ class Goal extends React.Component<GoalProps, GoalState> {
   }
 }
 
-export default Goal;
+export default GoalComponent;

@@ -1,18 +1,19 @@
 import "./Login.scss";
 import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
-import { getStringKey } from "./local-storage";
+import { getStringKey } from "./utils/local-storage";
 
 export type UserLogin = {
   apiToken: string;
 };
 
 type LoginProps = {
+  apiToken: string;
   loginSubmitted: (l: UserLogin) => void;
 };
 
 const Login = (props: LoginProps) => {
-  const [apiToken, setApiToken] = useState(getStringKey("apiToken"));
+  const [apiToken, setApiToken] = useState(props.apiToken);
 
   const handleSubmit = (value: FormEvent<HTMLFormElement>) => {
     props.loginSubmitted({
@@ -49,7 +50,6 @@ const Login = (props: LoginProps) => {
         <input
           value={apiToken}
           onChange={event => {
-            console.log("onChange - token");
             setApiToken(event.target.value);
           }}
         ></input>
