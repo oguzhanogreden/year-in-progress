@@ -5,6 +5,7 @@ import { of } from "rxjs";
 import { filter, map, mergeAll, scan, switchMap } from "rxjs/operators";
 import { targets } from "../../../App";
 import { progress } from "../../../utils/year-progress";
+import "./Goal.scss";
 
 type GoalProps = React.HTMLAttributes<HTMLDivElement> & {
   name: string;
@@ -57,12 +58,12 @@ class GoalComponent extends React.Component<GoalProps, GoalState> {
     const { relativeProgress } = this.state;
 
     const style: React.CSSProperties = {
-      left: `${relativeProgress}%`,
+      // left: `${relativeProgress}%`,
     };
     return (
       <div className={this.props.className} style={style}>
         {/* CONV */}
-        <p className="goal--title">{name}</p>
+        <p>{name}</p>
         <p> Delta: {relativeProgress.toFixed(1)}% </p>
       </div>
     );

@@ -1,0 +1,8 @@
+.Goal {
+	position: relative;
+  border-left: 1px solid blue;
+}
+
+.Goal.invalid {
+  border-color: var(--color-warning);
+}

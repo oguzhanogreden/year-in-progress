@@ -1,6 +1,5 @@
 import "./App.scss";
 import "./Indicator.css";
-import "./Canvas.css";
 import "./Header.css";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { finalize, take, timeout } from "rxjs/operators";
@@ -9,7 +8,7 @@ import { Client, IClient } from "reactive-beeminder-client/dist/client";
 import Settings from "./Settings";
 import { getStringKey, storeStringKey } from "./utils/local-storage";
 import Login from "./Login";
-import UserContext, { Target } from "./contexts/user-context";
+import { Target } from "./contexts/user-context";
 import Year from "./pages/year/Year";
 import { useEffect, useState } from "react";
 

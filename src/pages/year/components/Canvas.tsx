@@ -1,8 +1,9 @@
 import React from "react";
 import { FiArrowRight } from "react-icons/fi";
-import { Client, IClient } from "reactive-beeminder-client/dist/client";
+import { Client } from "reactive-beeminder-client/dist/client";
 import { progress } from "../../../utils/year-progress";
 import GoalComponent from "./Goal";
+import "./Canvas.scss";
 
 type CanvasProps = React.HTMLAttributes<HTMLDivElement> & {
   displayGoals: string[];
@@ -41,7 +42,7 @@ class Canvas extends React.Component<CanvasProps, CanvasState> {
           {displayGoals.map(goalSlug => (
             <GoalComponent
               key={goalSlug}
-              className="Goal"
+              className={`Goal ${false ? "invalid" : ""}`} // TODO: Replace conditional with goal.target !== null
               name={goalSlug}
               slug={goalSlug}
               client={client} // TODO: Add to context?
