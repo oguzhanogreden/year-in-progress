@@ -4,6 +4,7 @@ import UserContext, { AppGoal } from "../../contexts/user-context";
 import GoalListModal from "./components/GoalListModal";
 import Canvas from "./components/Canvas";
 import "./AddGoal.scss";
+import { filter, take } from "rxjs/operators";
 
 type YearProps = {
   client: Client;
@@ -29,6 +30,16 @@ const Year = (props: YearProps) => {
     setIsAddingGoal(false);
   };
 
+  const handleGoalSelected = (goalSlug: string) => {
+    client.getGoalData(goalSlug);
+    client.goalDataStream$
+      .pipe(
+        filter(goal => goal.slug === goalSlug),
+        take(1)
+      )
+      .subscribe(goal => setGoals([...goals, goal]));
+  };
+
   return (
     <div>
       <Canvas client={client} displayGoals={goals} className="Canvas"></Canvas>
@@ -45,9 +56,7 @@ const Year = (props: YearProps) => {
         <GoalListModal
           client={client}
           closeClicked={() => handleAddGoalClosed()}
-          goalSelected={slug => {
-            setGoals([...goals, { slug: slug }]);
-          }}
+          goalSelected={slug => handleGoalSelected(slug)}
           goalUnselected={s => {
             setGoals(goals.filter(g => g.slug !== s));
           }}

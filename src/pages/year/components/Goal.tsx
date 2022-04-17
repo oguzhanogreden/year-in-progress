@@ -27,7 +27,6 @@ function GoalComponent(props: GoalProps) {
     const { goal, client } = props;
 
     const slug = goal.slug;
-    client.getGoalData(slug);
 
     const relativeProgress = client.goalDataStream$.pipe(
       filter(goal => goal.slug === slug),

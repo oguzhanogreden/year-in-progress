@@ -7,7 +7,7 @@ import "./Canvas.scss";
 import { AppGoal } from "../../../contexts/user-context";
 
 type CanvasProps = React.HTMLAttributes<HTMLDivElement> & {
-  displayGoals: AppGoal[];
+  displayGoals: AppGoal[]; // TODO: Will React render if order of goals changes? Could cause performance problem.
   client: Client;
 };
 
