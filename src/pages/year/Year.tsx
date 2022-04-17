@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { Client } from "reactive-beeminder-client/dist/client";
 import UserContext, { AppGoal } from "../../contexts/user-context";
-import GoalList from "../../GoalList";
+import GoalListModal from "./components/GoalListModal";
 import Canvas from "./components/Canvas";
 
 type YearProps = {
@@ -45,7 +45,7 @@ const Year = (props: YearProps) => {
       )}
 
       {isAddingGoal && (
-        <GoalList
+        <GoalListModal
           client={client}
           closeClicked={() => handleAddGoalClosed()}
           goalSelected={slug => {
@@ -54,8 +54,8 @@ const Year = (props: YearProps) => {
           goalUnselected={s => {
             setGoals(goals.filter(g => g.slug !== s));
           }}
-          goalSlugs={user.goalSlugs}
-        ></GoalList>
+          selectedGoalSlugs={goals.map(g => g.slug)}
+        ></GoalListModal>
       )}
     </div>
   );
