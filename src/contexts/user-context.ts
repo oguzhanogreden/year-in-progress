@@ -24,7 +24,7 @@ type User = {
 }
 
 const defaultUser: User = {
-  apiToken: getStringKey('apiToken'),
+  apiToken: getStringKey('apiToken') ?? '',
   setApiToken: (token: string) => storeStringKey('apiToken', token),
 
   goalSlugs: [],
