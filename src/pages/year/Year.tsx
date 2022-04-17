@@ -31,11 +31,7 @@ const Year = (props: YearProps) => {
 
   return (
     <div>
-      <Canvas
-        client={client}
-        displayGoals={goals.map(g => g.slug)}
-        className="Canvas"
-      ></Canvas>
+      <Canvas client={client} displayGoals={goals} className="Canvas"></Canvas>
 
       {/* <Link to="/settings">Settings</Link> */}
 

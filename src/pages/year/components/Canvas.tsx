@@ -4,10 +4,10 @@ import { Client } from "reactive-beeminder-client/dist/client";
 import { progress as getProgress } from "../../../utils/year-progress";
 import GoalComponent from "./Goal";
 import "./Canvas.scss";
-import { render } from "react-dom";
+import { AppGoal } from "../../../contexts/user-context";
 
 type CanvasProps = React.HTMLAttributes<HTMLDivElement> & {
-  displayGoals: string[];
+  displayGoals: AppGoal[];
   client: Client;
 };
 
@@ -25,12 +25,12 @@ function Canvas(props: CanvasProps) {
       </div>
 
       <div className="canvas__goal-container">
-        {props.displayGoals.map(goalSlug => (
+        {props.displayGoals.map(goal => (
           <GoalComponent
-            key={goalSlug}
-            className={`Goal ${false ? "invalid" : ""}`} // TODO: Replace conditional with goal.target !== null
-            name={goalSlug}
-            slug={goalSlug}
+            key={goal.slug}
+            className={`Goal ${goal.target ? "" : "invalid"}`}
+            name={goal.slug}
+            slug={goal.slug}
             client={props.client} // TODO: Add to context?
           ></GoalComponent>
         ))}
