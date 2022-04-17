@@ -50,7 +50,6 @@ const Login = (props: LoginProps) => {
         <input
           value={apiToken}
           onChange={event => {
-            console.log("onChange - token");
             setApiToken(event.target.value);
           }}
         ></input>
