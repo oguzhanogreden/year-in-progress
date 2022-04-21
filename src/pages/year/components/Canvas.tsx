@@ -29,14 +29,6 @@ class Canvas extends React.Component<CanvasProps, CanvasState> {
 
     return (
       <div className={this.props.className}>
-        <div className="Header">
-          <div className="Indicator"></div>
-          <div>
-            <p>This here is now.</p>
-            <p>Progress: {progress}%</p>
-          </div>
-        </div>
-
         <div className="canvas__goal-container">
           {displayGoals.map(goalSlug => (
             <GoalComponent

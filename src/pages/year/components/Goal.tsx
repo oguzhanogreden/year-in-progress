@@ -63,7 +63,6 @@ class GoalComponent extends React.Component<GoalProps, GoalState> {
       <div className={this.props.className} style={style}>
         {/* CONV */}
         <p className="goal--title">{name}</p>
-        <p> Delta: {relativeProgress.toFixed(1)}% </p>
       </div>
     );
   }
