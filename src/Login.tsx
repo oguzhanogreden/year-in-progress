@@ -26,22 +26,30 @@ const Login = (props: LoginProps) => {
   return (
     <div className="Login">
       <div>
-        <h1>Welcome!</h1>
-
+        <em>
+          <strong>In development... </strong>
+        </em>
+        ⚙️
         <p>
-          <em>year-in-progress</em> is a yearly goal tracker for Beeminder
-          users.{" "}
+          <em>year-in-progress</em>{" "}
+          <span
+            style={{
+              textDecoration: "line-through",
+            }}
+          >
+            is
+          </span>{" "}
+          will be a yearly goal tracker for Beeminder users.
         </p>
-
         <p>
-          <Link to="/tour">Take the tour</Link> to explore the app, or{" "}
           <a
             href="https://help.beeminder.com/article/110-authorized-applications"
             target="_blank"
           >
-            enter your Beeminder API token
+            <span style={{ textDecoration: "line-through" }}>enter</span> your
+            Beeminder API token
           </a>{" "}
-          to start :rocket:
+          to start 🚀
         </p>
       </div>
 
