@@ -5,7 +5,7 @@ on:
   #   - "main"
 
 jobs:
-  run:
+  deploy:
     runs-on: ubuntu-latest
     env:
       name: Production
@@ -27,4 +27,4 @@ jobs:
           bucket-region: eu-west-1
           delete-removed: true
           no-cache: true
-          private: true
+          private: false
