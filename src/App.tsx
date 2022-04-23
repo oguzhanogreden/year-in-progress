@@ -3,13 +3,12 @@ import "./Indicator.css";
 import "./Canvas.css";
 import "./Header.css";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import { finalize, take, timeout } from "rxjs/operators";
 import { GoalResponse, UserResponse } from "reactive-beeminder-client/dist/api";
 import { Client, IClient } from "reactive-beeminder-client/dist/client";
 import Settings from "./Settings";
 import { getStringKey, storeStringKey } from "./utils/local-storage";
 import Login from "./Login";
-import UserContext, { Target } from "./contexts/user-context";
+import { Target } from "./contexts/user-context";
 import Year from "./pages/year/Year";
 import { useEffect, useState } from "react";
 
@@ -58,26 +57,16 @@ function App() {
   const [apiToken, setApiToken] = useState(getStringKey("apiToken") ?? "");
 
   useEffect(() => {
-    if (apiToken !== null) {
+    if (!!apiToken) {
       storeStringKey("apiToken", apiToken);
-      client.setToken(apiToken);
-
-      // Here was a clientAuthenticated$ stream.
-      // Current version is just a refactor of that, not sure if its definition still makes sense.
-      // TODO: Move this event to Client?
-      setIsLoading(true);
-      client.userDataStream$
-        .pipe(
-          take(1),
-          timeout(1000),
-          finalize(() => setIsLoading(false))
-        )
-        .subscribe({
-          next: _ => navigate("/year"),
-          error: () => console.error("Request taking too long."),
-        });
     }
   }, [apiToken]);
+
+  function handleLoggedInWithKey(apiKey: string) {
+    setApiToken(apiKey);
+
+    navigate("/year");
+  }
 
   return (
     <div className="App">
@@ -87,7 +76,10 @@ function App() {
           element={
             <Login
               apiToken={apiToken}
-              loginSubmitted={login => setApiToken(login.apiToken)}
+              client={client}
+              loggedInWithApiKey={login =>
+                handleLoggedInWithKey(login.apiToken)
+              }
             ></Login>
           }
         />

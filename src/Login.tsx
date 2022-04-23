@@ -1,7 +1,10 @@
 import "./Login.scss";
-import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
-import { getStringKey } from "./utils/local-storage";
+import { FormEvent, useEffect, useState } from "react";
+import { Client } from "reactive-beeminder-client/dist/client";
+import { timeout, finalize, catchError, EMPTY, Subject, takeUntil } from "rxjs";
+import { FiLoader } from "react-icons/fi";
+import Button from "./Button";
+import fetchUser from "./beeminder/fetch";
 
 export type UserLogin = {
   apiToken: string;
@@ -9,19 +12,44 @@ export type UserLogin = {
 
 type LoginProps = {
   apiToken: string;
-  loginSubmitted: (l: UserLogin) => void;
+  client: Client;
+  loggedInWithApiKey: (l: UserLogin) => void;
 };
 
 const Login = (props: LoginProps) => {
   const [apiToken, setApiToken] = useState(props.apiToken);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const takeUntilEffect = new Subject();
   const handleSubmit = (value: FormEvent<HTMLFormElement>) => {
-    props.loginSubmitted({
-      apiToken,
-    });
-    value.preventDefault();
-    console.log("handleSubmit over.");
+    setIsLoading(true);
+
+    fetchUser(apiToken)
+      .pipe(
+        takeUntil(takeUntilEffect),
+        catchError(err => {
+          return EMPTY;
+        }),
+        timeout(2000),
+        finalize(() => setIsLoading(false))
+      )
+      .subscribe({
+        next: _ => setIsLoggedIn(true),
+        error: () => console.error("Request taking too long."),
+      });
+
+    value.preventDefault(); // Prevent HTML form submission
   };
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      takeUntilEffect.next(null);
+      takeUntilEffect.complete();
+
+      props.loggedInWithApiKey({ apiToken });
+    }
+  }, [isLoggedIn]);
 
   return (
     <div className="Login">
@@ -63,7 +91,11 @@ const Login = (props: LoginProps) => {
           }}
         ></input>
 
-        <button type="submit">Get started!</button>
+        <Button>
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? <FiLoader></FiLoader> : "Get started!"}
+          </button>
+        </Button>
       </form>
     </div>
   );
