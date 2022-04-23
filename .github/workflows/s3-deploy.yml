@@ -19,7 +19,6 @@ jobs:
       - name: Build React
         run: npm run build
       - name: Upload to S3
-        needs: build
         uses: Reggionick/s3-deploy@v3.1.1
         with:
           folder: build
