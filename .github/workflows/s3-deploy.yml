@@ -11,6 +11,7 @@ jobs:
       name: Production
       AWS_ACCESS_KEY_ID: ${{ secrets.AMAZON_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AMAZON_ACCESS_KEY_SECRET }}
+      CI: false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
