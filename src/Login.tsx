@@ -56,6 +56,7 @@ const Login = (props: LoginProps) => {
       <form onSubmit={event => handleSubmit(event)}>
         <label>Beeminder API token</label>
         <input
+          type="password"
           value={apiToken}
           onChange={event => {
             setApiToken(event.target.value);
