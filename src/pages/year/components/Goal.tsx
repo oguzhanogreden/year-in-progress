@@ -1,33 +1,34 @@
 import { DateTime } from "luxon";
-import React from "react";
-import { Client } from "reactive-beeminder-client/dist/client";
-import { of } from "rxjs";
-import { filter, map, mergeAll, scan, switchMap } from "rxjs/operators";
-import { targets } from "../../../App";
+import React, { useContext, useEffect, useState } from "react";
+import { filter, last, map, mergeAll, scan } from "rxjs/operators";
+import { fetchGoal } from "../../../beeminder/fetch";
+import UserContext, { AppGoal, Target } from "../../../contexts/user-context";
 import { progress } from "../../../utils/year-progress";
+// import "./Goal.css";
 
-type GoalProps = React.HTMLAttributes<HTMLDivElement> & {
-  name: string;
-  slug: string;
-  client: Client;
-};
-type GoalState = {
-  relativeProgress: number;
+type GoalProps = {
+  goal: AppGoal;
 };
 
-class GoalComponent extends React.Component<GoalProps, GoalState> {
-  constructor(props: any) {
-    super(props);
-    this.state = { relativeProgress: 0 };
-  }
+export const targets: Map<string, Target> = new Map([
+  ["budget-groceries", { target: 12 * 200 }],
+  ["d-srs", { target: 12 * 200 }],
+]);
 
-  loadTarget = () => {
-    const { slug, client } = this.props;
-    client.getGoalData(slug);
+function GoalComponent(props: GoalProps) {
+  const [relativeProgress, setRelativeProgress] = useState(0);
+  const [target, setTarget] = useState(targets.get(props.goal.slug));
+  const user = useContext(UserContext);
 
-    const relativeProgress = client.goalDataStream$.pipe(
-      filter(goal => goal.slug === slug),
-      switchMap(goal => of(goal.dataPoints)),
+  const hasTarget = () => target !== undefined;
+
+  useEffect(() => {
+    loadProgress();
+  }, [props.goal]);
+
+  const fetchGoalDetails = (slug: string) =>
+    fetchGoal(user.apiToken, slug).pipe(
+      map(g => g.dataPoints),
       mergeAll(),
       filter(
         dataPoint =>
@@ -36,36 +37,36 @@ class GoalComponent extends React.Component<GoalProps, GoalState> {
       ),
       map(dataPoint => dataPoint.value),
       scan((total, value) => total + value, 0),
+      last(),
       map(total => {
-        const target = targets[0].target;
-        const percentProgress = (total / target) * 100;
+        const percentProgress = target ? (total / target.target) * 100 : 0;
         return percentProgress - progress();
       })
     );
 
+  const loadProgress = () => {
+    const { goal } = props;
+    const relativeProgress = fetchGoalDetails(goal.slug);
+
     relativeProgress.subscribe({
-      next: relativeProgress => this.setState({ relativeProgress }),
+      next: p => setRelativeProgress(p),
     });
   };
 
-  componentDidMount() {
-    this.loadTarget();
-  }
-
-  render() {
-    const { name } = this.props;
-    const { relativeProgress } = this.state;
-
-    const style: React.CSSProperties = {
+  function getStyle(): React.CSSProperties {
+    return {
       left: `${relativeProgress}%`,
     };
-    return (
-      <div className={this.props.className} style={style}>
-        {/* CONV */}
-        <p className="goal--title">{name}</p>
-      </div>
-    );
   }
+
+  // PICKUP: Implement target setting
+
+  return (
+    <div className={`Goal ${target ? "" : "no-target"}`} style={getStyle()}>
+      {/* CONV */}
+      <p className="goal--title">{props.goal.slug}</p>
+    </div>
+  );
 }
 
 export default GoalComponent;

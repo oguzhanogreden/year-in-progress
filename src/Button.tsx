@@ -1,7 +1,14 @@
 import "./Button.scss";
 
-function Button(props: any) {
-  return <div className="Button">{props.children}</div>;
+type ButtonProps = {
+  button: React.DetailedHTMLProps<
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    HTMLButtonElement
+  >;
+};
+
+function Button(props: ButtonProps) {
+  return <div className="Button">{props.button}</div>;
 }
 
 export default Button;

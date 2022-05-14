@@ -4,7 +4,8 @@ import { Client } from "reactive-beeminder-client/dist/client";
 import { timeout, finalize, catchError, EMPTY, Subject, takeUntil } from "rxjs";
 import { FiLoader } from "react-icons/fi";
 import Button from "./Button";
-import fetchUser from "./beeminder/fetch";
+import { fetchUser } from "./beeminder/fetch";
+import Input from "./Input";
 
 export type UserLogin = {
   apiToken: string;
@@ -45,7 +46,6 @@ const Login = (props: LoginProps) => {
   useEffect(() => {
     if (isLoggedIn) {
       takeUntilEffect.next(null);
-      takeUntilEffect.complete();
 
       props.loggedInWithApiKey({ apiToken });
     }
@@ -82,20 +82,26 @@ const Login = (props: LoginProps) => {
       </div>
 
       <form onSubmit={event => handleSubmit(event)}>
-        <label>Beeminder API token</label>
-        <input
-          type="password"
-          value={apiToken}
-          onChange={event => {
-            setApiToken(event.target.value);
-          }}
-        ></input>
+        <Input
+          label={<label>Beeminder API token</label>}
+          input={
+            <input
+              type="password"
+              value={apiToken}
+              onChange={event => {
+                setApiToken(event.target.value);
+              }}
+            ></input>
+          }
+        ></Input>
 
-        <Button>
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? <FiLoader></FiLoader> : "Get started!"}
-          </button>
-        </Button>
+        <Button
+          button={
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? <FiLoader></FiLoader> : "Get started!"}
+            </button>
+          }
+        ></Button>
       </form>
     </div>
   );

@@ -8,9 +8,12 @@ import { Client, IClient } from "reactive-beeminder-client/dist/client";
 import Settings from "./Settings";
 import { getStringKey, storeStringKey } from "./utils/local-storage";
 import Login from "./Login";
-import { Target } from "./contexts/user-context";
+import UserContext, { Target } from "./contexts/user-context";
 import Year from "./pages/year/Year";
 import { useEffect, useState } from "react";
+import { enableAllPlugins } from "immer";
+
+enableAllPlugins();
 
 const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
   getGoal: (goalName, cb) => {
@@ -37,14 +40,6 @@ const beeminderFetchClient: (t: string) => IClient = (token: string) => ({
   },
 });
 
-export const targets: Target[] = [
-  // TODO: #6
-  {
-    name: "running",
-    target: 31.05,
-  },
-];
-
 let client = new Client({
   token: getStringKey("apiToken") ?? "",
   client: beeminderFetchClient,
@@ -53,7 +48,6 @@ client.setToken(getStringKey("apiToken") ?? "");
 
 function App() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false); // TODO: Implement
   const [apiToken, setApiToken] = useState(getStringKey("apiToken") ?? "");
 
   useEffect(() => {
@@ -83,7 +77,15 @@ function App() {
             ></Login>
           }
         />
-        <Route path="/year" element={<Year client={client}></Year>}></Route>
+
+        <Route
+          path="/year"
+          element={
+            <UserContext.Provider value={{ apiToken, goals: [] }}>
+              <Year></Year>
+            </UserContext.Provider>
+          }
+        ></Route>
         <Route
           path="/settings"
           element={

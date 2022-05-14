@@ -1,86 +1,55 @@
 import "./GoalListModal.css";
 import { FiCheck } from "react-icons/fi";
-import { useEffect, useState } from "react";
-import { Client } from "reactive-beeminder-client/dist/client";
-import { take, mergeMap, toArray, finalize, map } from "rxjs/operators";
-import { defer } from "rxjs";
+import { Goal } from "../Year";
 
 type GoalListProps = {
-  goalSlugs?: string[];
-  selectedGoalSlugs: string[];
-  goalSelected: (goalSlug: string) => void;
-  goalUnselected: (goalSlug: string) => void;
   closeClicked: () => void;
-  client: Client;
+  goalSelected: (goalSlug: Goal) => void;
+  goalUnselected: (goalSlug: Goal) => void;
+  goals: Goal[];
+  isLoadingGoals: boolean;
 };
 
 function GoalListModal(props: GoalListProps) {
-  const {
-    closeClicked,
-    goalSelected,
-    goalUnselected,
-    selectedGoalSlugs,
-    client,
-  } = props;
-
-  const [goalSlugs, setGoalSlugs] = useState([] as string[]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    getGoalSlugs();
-  }, []);
-
-  const getGoalSlugs = () => {
-    const getGoals$ = defer(() => {
-      setIsLoading(true);
-
-      return client.userDataStream$;
-    }).pipe(
-      take(1),
-      mergeMap(user => user.goals),
-      toArray(),
-      map(goalSlugs => goalSlugs.sort()),
-      finalize(() => setIsLoading(false))
-    );
-
-    getGoals$.subscribe(goals => setGoalSlugs(goals));
-  };
+  const { closeClicked, goalSelected, goalUnselected, goals, isLoadingGoals } =
+    props;
 
   return (
     <div className="GoalListModal">
       <div className="close-button" onClick={() => closeClicked()}>
-        {/* <span>close</span> */}
         <FiCheck></FiCheck>
       </div>
 
       <h1>Add goals</h1>
 
-      {isLoading && "Loading goal list..."}
+      {isLoadingGoals && <p>Loading...</p>}
 
-      {!isLoading &&
-        goalSlugs?.map(goalSlug => (
-          <div className="item-container" key={goalSlug}>
+      {!isLoadingGoals &&
+        goals.map(goal => (
+          <div className="item-container" key={goal.slug}>
             <div className="GoalListItem">
               <input
                 type="checkbox"
-                id={goalSlug}
-                name={goalSlug}
-                checked={selectedGoalSlugs.includes(goalSlug)}
+                id={goal.slug}
+                name={goal.slug}
+                checked={goal.visible}
                 onChange={value => {
                   if (value.target.checked) {
-                    goalSelected(goalSlug);
+                    goalSelected(goal);
                   } else {
-                    goalUnselected(goalSlug);
+                    goalUnselected(goal);
                   }
                 }}
               ></input>
 
-              <label className="goalSlug" htmlFor={goalSlug}>
-                {goalSlug}
+              <label className="goalSlug" htmlFor={goal.slug}>
+                {goal.slug}
               </label>
             </div>
           </div>
         ))}
+
+      {}
     </div>
   );
 }
